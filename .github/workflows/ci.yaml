@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
+    paths:
+      - ".github/workflows/**"
+      - "src/**"
+      - "build/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: 'Tooling: Install Tools from Distribution'
+        run: |
+          set -e;
+          sudo apt-get -q -y update;
+          sudo apt-get -q -y install curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-ice40 rsync yosys yosys-abc;
+
+          npm install -g --ignore-scripts wavedrom;
+
+      - name: 'Tooling: Download and Install SBY'
+        run: |
+          set -e;
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          git clone https://github.com/boolector/boolector.git;
+          pushd boolector;
+          ./contrib/setup-btor2tools.sh;
+          ./contrib/setup-lingeling.sh;
+          ./configure.sh;
+          make -C build;
+          sudo cp build/bin/{boolector,btor*} /usr/local/bin/;
+          sudo cp deps/btor2tools/build/bin/btorsim /usr/local/bin/;
+          popd;
+
+          git clone https://github.com/SRI-CSL/yices2.git;
+          pushd yices2;
+          autoconf;
+          ./configure;
+          make && sudo make install;
+          popd;
+
+          git clone https://github.com/YosysHQ/sby.git;
+          pushd sby && sudo make install && popd;
+
+          popd;
+
+      - name: 'Tooling: Download and Install SV2V'
+        run: |
+          set -e;
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          git clone https://github.com/zachjs/sv2v.git;
+          pushd sv2v && make && popd;
+
+          popd;
+
+      - name: 'Tooling: Download and Install mdBook'
+        run: |
+          set -e;
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          mkdir -p mdbook;
+          curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.5.3/mdbook-v0.5.3-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=mdbook;
+
+          popd;
+
+      - name: 'Test and Synthesise'
+        run: |
+          set -e;
+          TOOLS="${GITHUB_WORKSPACE}/build/tools";
+          pushd "${GITHUB_WORKSPACE}/build";
+          make --version;
+          make all "SV2V=${TOOLS}/sv2v/bin/sv2v" "MDBOOK=${TOOLS}/mdbook/mdbook" SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
+          popd;
+
+      - name: 'Bundle Artefacts'
+        if: always()
+        run: |
+          set -e;
+          pushd "${GITHUB_WORKSPACE}/build";
+          tar --options gzip:compression-level=9 -cz out > fpga-sv-template-out.tar.gz;
+          popd;
+
+      - name: 'Store Artefacts'
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fpga-sv-template-out
+          if-no-files-found: error
+          archive: false
+          path: ${{github.workspace}}/build/fpga-sv-template-out.tar.gz

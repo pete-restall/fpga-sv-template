@@ -1,0 +1,65 @@
+set_io ICE_CLK 35
+set_frequency ICE_CLK 12
+
+# LEDs
+set_io -nowarn -pullup yes -pullup_resistor 100K LED_G 41
+set_io -nowarn -pullup yes -pullup_resistor 100K LED_R 40
+set_io -nowarn -pullup yes -pullup_resistor 100K LED_B 39
+
+# UART
+set_io -nowarn -pullup yes -pullup_resistor 100K UART3_RX 4
+set_io -nowarn -pullup yes -pullup_resistor 100K UART3_TX 6
+
+# USB
+set_io -nowarn -pullup yes -pullup_resistor 100K USB_DP 10
+set_io -nowarn -pullup yes -pullup_resistor 100K USB_DN 9
+set_io -nowarn -pullup yes -pullup_resistor 100K USB_PULLUP 11
+
+# PMOD 1
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_1 10
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_2 6
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_3 3
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_4 48
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_9 47
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_10 2
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_11 4
+set_io -nowarn -pullup yes -pullup_resistor 100K P1_12 9
+
+# PMOD 2
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_1 46
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_2 44
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_3 42
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_4 37
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_9 36
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_10 38
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_11 43
+set_io -nowarn -pullup yes -pullup_resistor 100K P2_12 45
+
+# PMOD 3
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_1 34
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_2 31
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_3 27
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_4 25
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_9 23
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_10 26
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_11 28
+set_io -nowarn -pullup yes -pullup_resistor 100K P3_12 32
+
+# PMOD 4 / Switches
+# set_io -nowarn -pullup yes -pullup_resistor 100K P4_1 21
+# set_io -nowarn -pullup yes -pullup_resistor 100K P4_2 20
+# set_io -nowarn -pullup yes -pullup_resistor 100K P4_3 19
+# set_io -nowarn -pullup yes -pullup_resistor 100K P4_4 18
+
+set_io -nowarn -pullup yes -pullup_resistor 100K SW[0] 18
+set_io -nowarn -pullup yes -pullup_resistor 100K SW[1] 19
+set_io -nowarn -pullup yes -pullup_resistor 100K SW[2] 20
+set_io -nowarn -pullup yes -pullup_resistor 100K SW[3] 21
+
+# SPI / Flash
+set_io -nowarn SPI_SS 16
+set_io -nowarn SPI_SCK 15
+set_io -nowarn SPI_MOSI 17
+set_io -nowarn SPI_MISO 14
+set_io -nowarn FLASH_IO2 12
+set_io -nowarn FLASH_IO3 13

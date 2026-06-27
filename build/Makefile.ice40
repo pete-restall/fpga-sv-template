@@ -1,0 +1,48 @@
+OUT_SYNTH_ICE40UP5K_DIR := $(OUT_SYNTH_DIR)/ice40up5k
+OUT_PNR_ICE40UP5K_SG48_DIR := $(OUT_PNR_DIR)/ice40up5k/sg48
+
+# TODO: tee THE OUTPUT OF THE SYNTHESIS, PNR AND BITSTREAM SCRIPTS INTO LOG FILES; REMEMBER TO MARK THE ARTEFACTS AS PRECIOUS...
+
+define script_create_synth_ice40up5k_ys
+	cat > '$@' <<-EOF
+		read_verilog -defer $<
+
+		chparam $(call args_yosys_chparams_from,$(lastword $^)) $(call top_module_name_from_src)
+
+		synth_ice40 \
+			-device u \
+			-top $(call top_module_name_from_src) \
+			-blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT)) \
+			-edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT)) \
+			-json $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_JSON_EXT))
+
+		write_verilog -noexpr $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_GATE_V_EXT))
+	EOF
+endef
+
+export script_create_synth_ice40up5k_ys
+
+.PRECIOUS: $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT)
+$(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(ARGS_EXT)
+	@set -e; \
+	eval "$${script_create_synth_ice40up5k_ys}";
+
+.PRECIOUS: $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.report.$(OBJ_JSON_EXT)
+$(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_PCF_EXT)
+	@set -e; \
+	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+	nextpnr-ice40 \
+		--up5k \
+		--package sg48 \
+		--json '$<' \
+		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
+		--report '$(@:%.$(OBJ_ASC_EXT)=%.report.$(OBJ_JSON_EXT))' \
+		--pcf '$(lastword $^)' \
+		--asc '$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))' \
+		--detailed-timing-report;
+
+.PRECIOUS: $(OUT_PNR_DIR)/ice40%.$(OBJ_BITS_EXT)
+$(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/ice40%.$(OBJ_ASC_EXT)
+	@set -e; \
+	echo "[BITS    ] $(call top_module_name_from_src): Creating bitstream ($< -> $@)"; \
+	icepack '$<' '$@';
