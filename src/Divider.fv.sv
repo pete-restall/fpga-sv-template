@@ -25,10 +25,10 @@ module DividerProof #(
 	);
 
 	`ALWAYS_PROOF_TIMESTEP begin
-		expect_toggle_only_changes_on_rising_edge_of_clock:
+		//expect_toggle_only_changes_on_rising_edge_of_clock:
 			assert(__proof_past_after_reset == 0 || $rose(dut_clock) || $stable(dut_toggle));
 
-		expect_toggle_is_always_zero_whilst_held_in_reset:
+		//expect_toggle_is_always_zero_whilst_held_in_reset:
 			assert(!dut_sync_reset || !dut_toggle);
 	end
 
@@ -59,9 +59,9 @@ module DividerProof #(
 	always @(posedge dut_clock) begin
 		if (!dut_sync_reset) begin
 			if ($rose(dut_toggle)) begin
-				expect_toggle_goes_high_on_count_of_divisor: assert(low_count == DIVISOR);
+				/*expect_toggle_goes_high_on_count_of_divisor:*/ assert(low_count == DIVISOR);
 			end else if ($fell(dut_toggle)) begin
-				expect_toggle_goes_low_on_count_of_divisor: assert(high_count == DIVISOR);
+				/*expect_toggle_goes_low_on_count_of_divisor:*/ assert(high_count == DIVISOR);
 			end
 		end else begin
 			assert(high_count == 0 && low_count == 0);
@@ -69,10 +69,10 @@ module DividerProof #(
 	end
 
 	always @(posedge dut_clock) begin
-		expect_reset_is_covered: cover(dut_sync_reset);
-		expect_non_reset_is_covered: cover(!dut_sync_reset);
+		/*expect_reset_is_covered:*/ cover(dut_sync_reset);
+		/*expect_non_reset_is_covered:*/ cover(!dut_sync_reset);
 
-		expect_at_least_one_low_to_high_toggle_is_covered: cover(__proof_past_after_reset && $rose(dut_toggle));
-		expect_at_least_one_high_to_low_toggle_is_covered: cover(__proof_past_after_reset && $fell(dut_toggle));
+		/*expect_at_least_one_low_to_high_toggle_is_covered:*/ cover(__proof_past_after_reset && $rose(dut_toggle));
+		/*expect_at_least_one_high_to_low_toggle_is_covered:*/ cover(__proof_past_after_reset && $fell(dut_toggle));
 	end
 endmodule
