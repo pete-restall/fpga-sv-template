@@ -32,7 +32,7 @@ jobs:
           key: ${{runner.os}}-build-tools
 
       - name: 'Tooling: Download and Install SBY'
-        if: steps.cache-build-tools.outputs.cache-hit != 'true'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -60,7 +60,7 @@ jobs:
           popd;
 
       - name: 'Tooling: Download and Install SV2V'
-        if: steps.cache-build-tools.outputs.cache-hit != 'true'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -71,7 +71,7 @@ jobs:
           popd;
 
       - name: 'Tooling: Download and Install mdBook'
-        if: steps.cache-build-tools.outputs.cache-hit != 'true'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -107,7 +107,7 @@ jobs:
 
       - name: 'Store Artefacts'
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: fpga-sv-template-out
           if-no-files-found: error

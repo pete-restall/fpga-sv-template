@@ -216,14 +216,14 @@ all_possible_args := $(shell seq $(MAX_ARGS))
 define DEFINE_PARAMETERISED_TOP_DEPS_RECIPE
 	@set -e; \
 	top_module_name='$$(call top_module_name_from_src)'; \
-	args_file='$$(firstword $$(filter %.$(ARGS_EXT),$$^))'; \
+	args_file='$$(firstword $$(filter %.$(i).$(ARGS_EXT),$$^))'; \
 	echo "[DEPENDS ] $$$${top_module_name}: Discovering dependencies ($$$${args_file} -> $$@)"; \
 	mkdir -p '$$(dir $$@)'; \
 	$$(IVERILOG) $$(IVERILOG_DEPS_FLAGS) \
 		'-D_DUMP_FILENAME=$(NULL_FD)' \
 		$$(call prefixed_src_dirs_from_src,-I) \
 		$$(call prefixed_src_dirs_from_src,-y) \
-		$$$$(cat "$$$${args_file}") \
+		$$$$(cat "$$$${args_file}" | sed -E 's/(^| +)-P/ -P$$(call top_module_name_from_src)./g') \
 		-o '$(NULL_FD)' \
 		'-Mprefix=$$@' \
 		-s "$$$${top_module_name}" \
