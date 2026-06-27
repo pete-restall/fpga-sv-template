@@ -102,7 +102,7 @@ jobs:
         run: |
           set -e;
           pushd "${GITHUB_WORKSPACE}/build";
-          tar --options gzip:compression-level=9 -cz out > fpga-sv-template-out.tar.gz;
+          GZIP_OPT=-9 tar -cz out > fpga-sv-template-out.tar.gz;
           popd;
 
       - name: 'Store Artefacts'
