@@ -24,7 +24,15 @@ jobs:
 
           npm install -g --ignore-scripts wavedrom;
 
+      - name: 'Tooling: Restore from Cache'
+        id: cache-build-tools-restore
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{github.workspace}}/build/tools
+          key: ${{runner.os}}-build-tools
+
       - name: 'Tooling: Download and Install SBY'
+        if: steps.cache-build-tools.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -52,6 +60,7 @@ jobs:
           popd;
 
       - name: 'Tooling: Download and Install SV2V'
+        if: steps.cache-build-tools.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -62,6 +71,7 @@ jobs:
           popd;
 
       - name: 'Tooling: Download and Install mdBook'
+        if: steps.cache-build-tools.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
@@ -70,6 +80,13 @@ jobs:
           curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.5.3/mdbook-v0.5.3-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=mdbook;
 
           popd;
+
+      - name: 'Tooling: Store in Cache'
+        id: cache-build-tools-store
+        uses: actions/cache/save@v6
+        with:
+          path: ${{github.workspace}}/build/tools
+          key: ${{steps.cache-build-tools-restore.outputs.cache-primary-key}}
 
       - name: 'Test and Synthesise'
         run: |
