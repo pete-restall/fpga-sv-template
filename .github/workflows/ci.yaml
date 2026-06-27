@@ -59,6 +59,25 @@ jobs:
 
           popd;
 
+      - name: 'Tooling: Install SBY from Cached Builds'
+        if: steps.cache-build-tools-restore.outputs.cache-hit == 'true'
+        run: |
+          set -e;
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          pushd boolector;
+          sudo cp build/bin/{boolector,btor*} /usr/local/bin/;
+          sudo cp deps/btor2tools/build/bin/btorsim /usr/local/bin/;
+          popd;
+
+          pushd yices2;
+          sudo make install;
+          popd;
+
+          pushd sby && sudo make install && popd;
+
+          popd;
+
       - name: 'Tooling: Download and Install SV2V'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
