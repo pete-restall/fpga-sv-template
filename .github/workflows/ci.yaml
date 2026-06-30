@@ -10,6 +10,15 @@ on:
       - "src/**"
       - "build/**"
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-26.04
@@ -135,3 +144,15 @@ jobs:
           if-no-files-found: error
           archive: false
           path: ${{github.workspace}}/build/fpga-sv-template-out.tar.gz
+
+      - name: 'Configure GitHub Pages'
+        uses: actions/configure-pages@v5
+
+      - name: 'Upload mdBook to GitHub Pages'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build/out/doc/book'
+
+      - name: 'Deploy mdBook to GitHub Pages'
+        id: deployment
+        uses: actions/deploy-pages@v5
