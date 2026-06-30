@@ -1,16 +1,19 @@
 OUT_SYNTH_ICE40UP5K_DIR := $(OUT_SYNTH_DIR)/ice40up5k
 OUT_PNR_ICE40UP5K_SG48_DIR := $(OUT_PNR_DIR)/ice40up5k/sg48
 
+OUT_SYNTH_ICE40HX1K_DIR := $(OUT_SYNTH_DIR)/ice40hx1k
+OUT_PNR_ICE40HX1K_TQ144_DIR := $(OUT_PNR_DIR)/ice40hx1k/tq144
+
 # TODO: tee THE OUTPUT OF THE SYNTHESIS, PNR AND BITSTREAM SCRIPTS INTO LOG FILES; REMEMBER TO MARK THE ARTEFACTS AS PRECIOUS...
 
-define script_create_synth_ice40up5k_ys
+define script_create_synth_ice40_ys
 	cat > '$@' <<-EOF
 		read_verilog -defer $<
 
 		chparam $(call args_yosys_chparams_from,$(lastword $^)) $(call top_module_name_from_src)
 
 		synth_ice40 \
-			-device u \
+			-device $${device} \
 			-top $(call top_module_name_from_src) \
 			-blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT)) \
 			-edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT)) \
@@ -20,20 +23,11 @@ define script_create_synth_ice40up5k_ys
 	EOF
 endef
 
-export script_create_synth_ice40up5k_ys
+export script_create_synth_ice40_ys
 
-.PRECIOUS: $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT)
-$(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(ARGS_EXT)
-	@set -e; \
-	eval "$${script_create_synth_ice40up5k_ys}";
-
-.PRECIOUS: $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.report.$(OBJ_JSON_EXT)
-$(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_SDC_EXT)
-	@set -e; \
-	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+define script_nextpnr_ice40
 	nextpnr-ice40 \
-		--up5k \
-		--package sg48 \
+		$${nextpnr_args} \
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
 		--report '$(@:%.$(OBJ_ASC_EXT)=%.report.$(OBJ_JSON_EXT))' \
@@ -41,6 +35,31 @@ $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.
 		--sdc '$(firstword $(filter %.$(OBJ_SDC_EXT),$^))' \
 		--pcf '$(firstword $(filter %.$(OBJ_PCF_EXT),$^))' \
 		--asc '$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))';
+endef
+
+export script_nextpnr_ice40
+
+.PRECIOUS: $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT)
+$(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(ARGS_EXT)
+	@set -e; \
+	eval "device=u; $${script_create_synth_ice40_ys}";
+
+.PRECIOUS: $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.report.$(OBJ_JSON_EXT)
+$(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_SDC_EXT)
+	@set -e; \
+	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+	eval "nextpnr_args='--up5k --package sg48'; $${script_nextpnr_ice40}";
+
+.PRECIOUS: $(OUT_SYNTH_ICE40HX1K_DIR)/%.$(OBJ_YS_EXT)
+$(OUT_SYNTH_ICE40HX1K_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_ICE40HX1K_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_ICE40HX1K_DIR)/%.$(ARGS_EXT)
+	@set -e; \
+	eval "device=hx; $${script_create_synth_ice40_ys}";
+
+.PRECIOUS: $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.report.$(OBJ_JSON_EXT)
+$(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40HX1K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_SDC_EXT)
+	@set -e; \
+	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+	eval "nextpnr_args='--hx1k --package tq144'; $${script_nextpnr_ice40}";
 
 .PRECIOUS: $(OUT_PNR_DIR)/ice40%.$(OBJ_BITS_EXT)
 $(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/ice40%.$(OBJ_ASC_EXT)

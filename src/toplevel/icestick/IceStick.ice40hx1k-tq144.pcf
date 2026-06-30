@@ -1,0 +1,59 @@
+set_io ICE_CLK 21
+set_frequency ICE_CLK 12
+
+# LEDs
+set_io -nowarn D1 99 # Red, top
+set_io -nowarn D2 98 # Red, right
+set_io -nowarn D3 97 # Red, bottom
+set_io -nowarn D4 96 # Red, left
+set_io -nowarn D5 95 # Green, centre
+
+# IrDA
+set_io -nowarn -pullup yes RXD 106
+set_io -nowarn -pullup yes TXD 105
+set_io -nowarn -pullup yes SD 107
+
+# PMOD 2x6 +3.3V (J2)
+set_io PIO1_02 -nowarn -pullup yes 78
+set_io PIO1_03 -nowarn -pullup yes 79
+set_io PIO1_04 -nowarn -pullup yes 80
+set_io PIO1_05 -nowarn -pullup yes 81
+set_io PIO1_06 -nowarn -pullup yes 87
+set_io PIO1_07 -nowarn -pullup yes 88
+set_io PIO1_08 -nowarn -pullup yes 90
+set_io PIO1_09 -nowarn -pullup yes 91
+
+# GPIO 1x10 +3.3V (J1)
+set_io PIO0_02 -nowarn -pullup yes 112
+set_io PIO0_03 -nowarn -pullup yes 113
+set_io PIO0_04 -nowarn -pullup yes 114
+set_io PIO0_05 -nowarn -pullup yes 115
+set_io PIO0_06 -nowarn -pullup yes 116
+set_io PIO0_07 -nowarn -pullup yes 117
+set_io PIO0_08 -nowarn -pullup yes 118
+set_io PIO0_09 -nowarn -pullup yes 119
+
+# GPIO 1x10 +3.3V (J3)
+set_io PIO2_10 -nowarn -pullup yes 44
+set_io PIO2_11 -nowarn -pullup yes 45
+set_io PIO2_12 -nowarn -pullup yes 47
+set_io PIO2_13 -nowarn -pullup yes 48
+set_io PIO2_14 -nowarn -pullup yes 56
+set_io PIO2_15 -nowarn -pullup yes 60
+set_io PIO2_16 -nowarn -pullup yes 61
+set_io PIO2_17 -nowarn -pullup yes 62
+
+# UART (FTDI channel B)
+set_io -nowarn -pullup yes DCDn 1
+set_io -nowarn -pullup yes DSRn 2
+set_io -nowarn -pullup yes DTRn 3
+set_io -nowarn -pullup yes CTSn 4
+set_io -nowarn -pullup yes RTSn 7
+set_io -nowarn -pullup yes RS232_Tx_TTL 8
+set_io -nowarn -pullup yes RS232_Rx_TTL 9
+
+# SPI / Flash
+set_io -nowarn SPI_SS 71
+set_io -nowarn SPI_SCK 70
+set_io -nowarn SPI_MOSI 68
+set_io -nowarn SPI_MISO 67

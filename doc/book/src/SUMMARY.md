@@ -5,6 +5,7 @@
 
 # Development Boards
 
+- [iCEstick](./toplevel/icestick/IceStick.top.md)
 - [iCE Sugar](./toplevel/icesugar/IceSugar.top.md)
 
 
