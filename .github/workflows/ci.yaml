@@ -102,6 +102,7 @@ jobs:
 
       - name: 'Tooling: Store in Cache'
         id: cache-build-tools-store
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
         with:
           path: ${{github.workspace}}/build/tools
@@ -111,7 +112,7 @@ jobs:
         run: |
           set -e;
           TOOLS="${GITHUB_WORKSPACE}/build/tools";
-          MAKE="make all 'SV2V=${TOOLS}/sv2v/bin/sv2v' 'MDBOOK=${TOOLS}/mdbook/mdbook'";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
