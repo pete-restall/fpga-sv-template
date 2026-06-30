@@ -28,7 +28,7 @@ $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_E
 	eval "$${script_create_synth_ice40up5k_ys}";
 
 .PRECIOUS: $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.report.$(OBJ_JSON_EXT)
-$(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_PCF_EXT)
+$(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_ICE40UP5K_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_SDC_EXT)
 	@set -e; \
 	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
 	nextpnr-ice40 \
@@ -37,9 +37,10 @@ $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40UP5K_SG48_DIR)/%.
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
 		--report '$(@:%.$(OBJ_ASC_EXT)=%.report.$(OBJ_JSON_EXT))' \
-		--pcf '$(lastword $^)' \
-		--asc '$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))' \
-		--detailed-timing-report;
+		--detailed-timing-report \
+		--sdc '$(firstword $(filter %.$(OBJ_SDC_EXT),$^))' \
+		--pcf '$(firstword $(filter %.$(OBJ_PCF_EXT),$^))' \
+		--asc '$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))';
 
 .PRECIOUS: $(OUT_PNR_DIR)/ice40%.$(OBJ_BITS_EXT)
 $(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/ice40%.$(OBJ_ASC_EXT)

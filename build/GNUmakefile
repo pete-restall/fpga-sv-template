@@ -24,7 +24,7 @@ OBJ_YS_EXT := ys
 OBJ_BLIF_EXT := blif
 OBJ_EDIF_EXT := edif
 OBJ_JSON_EXT := json
-OBJ_GATE_V_EXT := impl.v
+OBJ_GATE_V_EXT := gate.v
 OBJ_ASC_EXT := asc
 OBJ_BITS_EXT := bits
 
@@ -45,6 +45,8 @@ TOP_SRC_EXT := $(TOP_EXT).$(SRC_EXT)
 TOP_OBJ_EXT := $(TOP_EXT).$(OBJ_EXT)
 SRC_PCF_EXT := pcf
 OBJ_PCF_EXT := pcf
+SRC_SDC_EXT := sdc
+OBJ_SDC_EXT := sdc
 DOC_MD_SRC_EXT := md
 DOC_MD_OBJ_EXT := md
 DOC_WAVEDROM_SRC_EXT := wd
@@ -105,6 +107,7 @@ find_src = $(call find_files,$(SRC_DIR),$(1))
 find_files = $(shell find '$(1)' -type f -name '$(2)' 2> '$(NULL_FD)')
 find_doc = $(call find_files,$(DOC_DIR),$(1))
 src_top_to_pcf = $(shell find '$(dir $(1))' -name '$(notdir $(1:%.$(TOP_SRC_EXT)=%.$(call synth_target)-$(if $(PNR_PACKAGE),$(PNR_PACKAGE),*).$(SRC_PCF_EXT)))' -type f)
+src_top_to_sdc = $(shell find '$(dir $(1))' -name '$(notdir $(1:%.$(TOP_SRC_EXT)=%.$(call synth_target)-$(if $(PNR_PACKAGE),$(PNR_PACKAGE),*).$(SRC_SDC_EXT)))' -type f)
 src_to_testbench_passes = $(patsubst $(SRC_DIR)/%,$(OUT_TESTBENCHES_DIR)/%,$(1:%.$(SRC_EXT)=%.$(PASS_EXT)))
 src_to_verification_passes = $(patsubst $(SRC_DIR)/%,$(OUT_VERIFICATION_DIR)/%,$(1:%.$(SRC_EXT)=%.$(PASS_EXT)))
 src_to_synthesis_done = $(patsubst $(SRC_DIR)/%,$(OUT_SYNTH_DEV_DIR)/%,$(1:%.$(TOP_SRC_EXT)=%.$(DONE_EXT)))
@@ -118,6 +121,7 @@ SYNTH_ARGS_EXT := $(call synth_target).$(ARGS_EXT)
 
 OUT_PNR_PKG_DIR := $(OUT_PNR_DIR)/$(call synth_target)/$(call pnr_package)
 PNR_SRC_PCF_EXT := $(call synth_target)-$(call pnr_package).$(SRC_PCF_EXT)
+PNR_SRC_SDC_EXT := $(call synth_target)-$(call pnr_package).$(SRC_SDC_EXT)
 
 OUT_BITS_PKG_DIR := $(OUT_BITS_DIR)/$(call synth_target)/$(call pnr_package)
 
@@ -159,7 +163,6 @@ help:
 	@echo '    help           This message (default)';
 	@echo '    pnr            Place and Route; provide values for SYNTH_TARGET and PNR_PACKAGE';
 	@echo '    proofs         Verify all formal proofs (*.$(FV_SRC_EXT))';
-	# TODO: Add 'sta' target for static timing analysis; use OpenSTA for this, in conjunction with the synthesised gate-level .impl.v
 	@echo '    synth          Synthesise; provide a value for SYNTH_TARGET';
 	@echo '    testbenches    Run all testbenches (*.$(TB_SRC_EXT))';
 	@echo;
@@ -549,6 +552,13 @@ $(OUT_PNR_PKG_DIR)/%.$(OBJ_PCF_EXT): # Prerequisites are added by the generated 
 	echo "[COPY    ] Device constraints ($< -> $@)"; \
 	cp '$<' '$@';
 
+.PRECIOUS: $(OUT_PNR_PKG_DIR)/%.$(OBJ_SDC_EXT)
+$(OUT_PNR_PKG_DIR)/%.$(OBJ_SDC_EXT): # Prerequisites are added by the generated makefile (below)
+	@set -e; \
+	[ -f '$<' ] || (echo && echo '*** No prerequisites for $@; check $<' && exit 1); \
+	echo "[COPY    ] Timing constraints ($< -> $@)"; \
+	cp '$<' '$@';
+
 .PRECIOUS: $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)
 $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT): $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT)
 	@set -e; \
@@ -556,8 +566,9 @@ $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT): $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT)
 	echo "[DEPENDS ] $(call top_module_name_from_src): Creating Top-Level PNR Makefile dependencies for $${num_args} variants ($< -> $@)"; \
 	[ $${num_args} -gt 0 ] || (echo && echo '*** No prerequisites for $@; check for corresponding *.$(ARGS_EXT) in $(OUT_SYNTH_DEV_DIR)' && exit 1); \
 	mkdir -p '$(dir $@)'; \
-	seq $${num_args} | $(xargs) -I ^ echo '$(@:%.$(MAKE_DEPS_EXT)=%.$(DONE_EXT)) : $(foreach obj_ext,$(OBJ_JSON_EXT) $(OBJ_PCF_EXT),$(@:%.$(MAKE_DEPS_EXT)=%.^.$(obj_ext)))' > '$@'; \
-	seq $${num_args} | $(xargs) -I ^ echo '$(@:%.$(MAKE_DEPS_EXT)=%.^.$(OBJ_PCF_EXT)) : $(@:$(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)=$(SRC_DIR)/%.$(PNR_SRC_PCF_EXT))' >> '$@';
+	seq $${num_args} | $(xargs) -I ^ echo '$(@:%.$(MAKE_DEPS_EXT)=%.$(DONE_EXT)) : $(foreach obj_ext,$(OBJ_JSON_EXT) $(OBJ_PCF_EXT) $(OBJ_SDC_EXT),$(@:%.$(MAKE_DEPS_EXT)=%.^.$(obj_ext)))' > '$@'; \
+	seq $${num_args} | $(xargs) -I ^ echo '$(@:%.$(MAKE_DEPS_EXT)=%.^.$(OBJ_PCF_EXT)) : $(@:$(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)=$(SRC_DIR)/%.$(PNR_SRC_PCF_EXT))' >> '$@'; \
+	seq $${num_args} | $(xargs) -I ^ echo '$(@:%.$(MAKE_DEPS_EXT)=%.^.$(OBJ_SDC_EXT)) : $(@:$(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)=$(SRC_DIR)/%.$(PNR_SRC_SDC_EXT))' >> '$@';
 
 # TODO: a 'make help' or 'make clean' will run the rule to include these, even if we're not building anything; can this be tidied up ?
 include $(patsubst $(SRC_DIR)/%.$(TOP_SRC_EXT),$(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT),$(TOP_SRC))
@@ -595,6 +606,13 @@ $(OUT_BITS_PKG_DIR)/%.$(OBJ_PCF_EXT): $(OUT_PNR_PKG_DIR)/%.$(OBJ_PCF_EXT)
 	@set -e; \
 	[ -f '$<' ] || (echo && echo '*** No prerequisites for $@; check $<' && exit 1); \
 	echo "[COPY    ] Device constraints ($< -> $@)"; \
+	cp '$<' '$@';
+
+.PRECIOUS: $(OUT_BITS_PKG_DIR)/%.$(OBJ_SDC_EXT)
+$(OUT_BITS_PKG_DIR)/%.$(OBJ_SDC_EXT): $(OUT_PNR_PKG_DIR)/%.$(OBJ_SDC_EXT)
+	@set -e; \
+	[ -f '$<' ] || (echo && echo '*** No prerequisites for $@; check $<' && exit 1); \
+	echo "[COPY    ] Timing constraints ($< -> $@)"; \
 	cp '$<' '$@';
 
 
