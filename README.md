@@ -81,5 +81,7 @@ All build artefacts are in `build/out` but there has no attempt at packaging; it
 
 I've added top-level blinky modules for some of the FPGA development boards that I have, since that's useful to me, but as long as the Yosys ecosystem can target a given architecture then this workflow ought to be able to target it too.  The Makefiles may need tweaking to do this.
 
+The example [GitHub CI workflow](.github/workflows/ci.yaml) also publishes [the compiled mdBook as GitHub Pages](https://pete-restall.github.io/fpga-sv-template/).
+
 ## Build Status
 [![CI](https://github.com/pete-restall/fpga-sv-template/actions/workflows/ci.yaml/badge.svg)](https://github.com/pete-restall/fpga-sv-template/actions/workflows/ci.yaml)
