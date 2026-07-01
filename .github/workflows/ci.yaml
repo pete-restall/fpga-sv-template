@@ -149,10 +149,18 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: 'Upload mdBook to GitHub Pages'
+        id: github-pages-artefact
         uses: actions/upload-pages-artifact@v3
         with:
           path: 'build/out/doc/book'
 
+  github-pages-deployment:
+    needs: build
+    runs-on: ubuntu-26.04
+    environment:
+      name: github-pages
+      url: ${{ steps.github-pages-artefact.outputs.page_url }}
+    steps:
       - name: 'Deploy mdBook to GitHub Pages'
-        id: deployment
+        id: github-pages-artefact
         uses: actions/deploy-pages@v5
