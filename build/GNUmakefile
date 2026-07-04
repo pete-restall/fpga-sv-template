@@ -16,6 +16,11 @@ OUT_DOC_BOOK_DIR := $(OUT_DOC_DIR)/book
 SHELL := bash
 NULL_FD := /dev/null
 
+# Set to 'sv2v' or 'iverilog'.  SV2V will allow a more consistent parsing of source, so features like interfaces will work correctly.
+# SV2V does not generate a dependency entry for an 'include'd file, however.  This is the (current) trade-off - a consistent set of
+# System Verilog features available and able to be parsed throughout the workflow, or header files detected as make dependencies :(
+DEPS_GEN := sv2v
+
 SRC_EXT := sv
 OBJ_EXT := v
 OBJ_VVP_EXT := vvp
@@ -78,7 +83,8 @@ VVP_TB_EXTFLAGS := -fst-speed
 VVP_DUMP_EXT := fst
 
 SV2V := sv2v
-SV2V_ALL_FLAGS := --siloed --exclude=Assert
+SV2V_ALL_FLAGS := --siloed --exclude=Assert -v
+SV2V_DEPS_FLAGS := --siloed --exclude=Assert -v --pass-through
 SV2V_TIMESCALE := 1ns/100ps
 
 YOSYS := yosys
@@ -222,15 +228,24 @@ define DEFINE_PARAMETERISED_TOP_DEPS_RECIPE
 	args_file='$$(firstword $$(filter %.$(i).$(ARGS_EXT),$$^))'; \
 	echo "[DEPENDS ] $$$${top_module_name}: Discovering dependencies ($$$${args_file} -> $$@)"; \
 	mkdir -p '$$(dir $$@)'; \
-	$$(IVERILOG) $$(IVERILOG_DEPS_FLAGS) \
-		'-D_DUMP_FILENAME=$(NULL_FD)' \
-		$$(call prefixed_src_dirs_from_src,-I) \
-		$$(call prefixed_src_dirs_from_src,-y) \
-		$$$$(cat "$$$${args_file}" | sed -E 's/(^| +)-P/ -P$$(call top_module_name_from_src)./g') \
-		-o '$(NULL_FD)' \
-		'-Mprefix=$$@' \
-		-s "$$$${top_module_name}" \
-		'$$<';
+	if [ 'x$(DEPS_GEN)' == 'xsv2v' ]; then \
+		$$(SV2V) $$(SV2V_DEPS_FLAGS) \
+			'-D_DUMP_FILENAME=$(NULL_FD)' \
+			$$(call prefixed_src_dirs_from_src,-I) \
+			$$(call prefixed_src_dirs_from_src,-y) \
+			"--top=$$$${top_module_name}" \
+			'$$<' | sed -n -E 's#^[ \t]*// Trace:.* ([^ :]+):[0-9]+:[0-9]+$$$$#M \1#gp' | sort | uniq > '$$@'; \
+	else \
+		$$(IVERILOG) $$(IVERILOG_DEPS_FLAGS) \
+			'-D_DUMP_FILENAME=$(NULL_FD)' \
+			$$(call prefixed_src_dirs_from_src,-I) \
+			$$(call prefixed_src_dirs_from_src,-y) \
+			$$$$(cat "$$$${args_file}" | sed -E 's/(^| +)-P/ -P$$(call top_module_name_from_src)./g') \
+			-o '$(NULL_FD)' \
+			'-Mprefix=$$@' \
+			-s "$$$${top_module_name}" \
+			'$$<'; \
+	fi
 endef
 
 define DEFINE_PARAMETERISED_TOP_RECIPES
