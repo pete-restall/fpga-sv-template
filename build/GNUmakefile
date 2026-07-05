@@ -84,7 +84,7 @@ VVP_DUMP_EXT := fst
 
 SV2V := sv2v
 SV2V_ALL_FLAGS := --siloed --exclude=Assert -v
-SV2V_DEPS_FLAGS := --siloed --exclude=Assert -v --pass-through
+SV2V_DEPS_FLAGS := $(SV2V_ALL_FLAGS)
 SV2V_TIMESCALE := 1ns/100ps
 
 YOSYS := yosys
@@ -223,23 +223,30 @@ top_module_name_from = $(notdir \
 all_possible_args := $(shell seq $(MAX_ARGS))
 
 define DEFINE_PARAMETERISED_TOP_DEPS_RECIPE
-	@set -e; \
+	@set -e -o pipefail; \
 	top_module_name='$$(call top_module_name_from_src)'; \
 	args_file='$$(firstword $$(filter %.$(i).$(ARGS_EXT),$$^))'; \
 	echo "[DEPENDS ] $$$${top_module_name}: Discovering dependencies ($$$${args_file} -> $$@)"; \
 	mkdir -p '$$(dir $$@)'; \
+	directives="$$$$(cat '$$<' | sed -n -E 's:^[ \t]*//#[ \t]*(.+)$$$$:\1:gp')"; \
+	lib_paths="$$$$(echo "$$$${directives}" | sed -n -E 's#^library_path[ \t]+"@src/(.+)"$$$$#-y $(SRC_DIR)/\1#gp')"; \
+	inc_paths="$$$$(echo "$$$${directives}" | sed -n -E 's#^include_path[ \t]+"@src/(.+)"$$$$#-I $(SRC_DIR)/\1#gp')"; \
 	if [ 'x$(DEPS_GEN)' == 'xsv2v' ]; then \
 		$$(SV2V) $$(SV2V_DEPS_FLAGS) \
 			'-D_DUMP_FILENAME=$(NULL_FD)' \
-			$$(call prefixed_src_dirs_from_src,-I) \
-			$$(call prefixed_src_dirs_from_src,-y) \
+			$$$${inc_paths} \
+			$$(call prefixed_src_dirs_from_src,-I ) \
+			$$$${lib_paths} \
+			$$(call prefixed_src_dirs_from_src,-y ) \
 			"--top=$$$${top_module_name}" \
 			'$$<' | sed -n -E 's#^[ \t]*// Trace:.* ([^ :]+):[0-9]+:[0-9]+$$$$#M \1#gp' | sort | uniq > '$$@'; \
 	else \
 		$$(IVERILOG) $$(IVERILOG_DEPS_FLAGS) \
 			'-D_DUMP_FILENAME=$(NULL_FD)' \
-			$$(call prefixed_src_dirs_from_src,-I) \
-			$$(call prefixed_src_dirs_from_src,-y) \
+			$$$${inc_paths} \
+			$$(call prefixed_src_dirs_from_src,-I ) \
+			$$$${lib_paths} \
+			$$(call prefixed_src_dirs_from_src,-y ) \
 			$$$$(cat "$$$${args_file}" | sed -E 's/(^| +)-P/ -P$$(call top_module_name_from_src)./g') \
 			-o '$(NULL_FD)' \
 			'-Mprefix=$$@' \
@@ -307,7 +314,7 @@ args_yosys_chparams_from = $(shell $(SHELL) -c "[ -f '$(1)' ] && (cat '$(1)' | s
 
 .PRECIOUS: %.$(OBJ_EXT)
 %.$(OBJ_EXT): %.$(ARGS_EXT) %.$(MAKE_DEPS_EXT) %.$(SV2V_DEPS_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	top_module_name='$(call top_module_name_from_src)'; \
 	deps_file='$(firstword $(filter %.$(SV2V_DEPS_EXT),$^))'; \
 	echo "[SV2V    ] $${top_module_name}: Transpiling ($< -> $@)"; \
@@ -347,7 +354,7 @@ $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(LOG_EXT): $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT
 
 .PRECIOUS: $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(MAKE_DEPS_EXT) $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(ARGS_EXT)
 $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(TB_EXT).$(ARGS_EXT) $(SRC_DIR)/%.$(TB_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Testbench Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	num_args=$$(wc -l < '$<'); \
@@ -358,7 +365,7 @@ $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(TB_EXT).$(AR
 	seq $${num_args} | $(xargs) -I ^ echo 'include $(@:%.$(MAKE_DEPS_EXT)=%.^.$(MAKE_DEPS_EXT))' >> '$@';
 
 $(OUT_TESTBENCHES_DIR)/%.$(TB_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(TB_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Testbench Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	echo '' > '$(@:%.$(MAKE_DEPS_EXT)=%.1.$(ARGS_EXT))'; \
@@ -388,7 +395,7 @@ $(OUT_TESTBENCHES_DIR)/%.$(LOG_EXT): $(OUT_TESTBENCHES_DIR)/%.$(OBJ_VVP_EXT)
 
 .PRECIOUS: %.$(OBJ_VVP_EXT)
 %.$(OBJ_VVP_EXT): %.$(OBJ_EXT) %.$(ARGS_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	top_module_name='$(call top_module_name_from_src)'; \
 	args_file='$(firstword $(filter %.$(ARGS_EXT),$^))'; \
 	echo "[IVERILOG] $${top_module_name}: Compiling simulation ($${args_file} -> $@)"; \
@@ -467,7 +474,7 @@ $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(LOG_EXT): $(OUT_VERIFICATION_DIR)/%.$(FV_E
 
 .PRECIOUS: $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(MAKE_DEPS_EXT) $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(ARGS_EXT)
 $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(FV_EXT).$(ARGS_EXT) $(SRC_DIR)/%.$(FV_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Formal Verification Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	num_args=$$(wc -l < '$<'); \
@@ -478,7 +485,7 @@ $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(FV_EXT).$(A
 	seq $${num_args} | $(xargs) -I ^ echo 'include $(@:%.$(MAKE_DEPS_EXT)=%.^.$(MAKE_DEPS_EXT))' >> '$@';
 
 $(OUT_VERIFICATION_DIR)/%.$(FV_EXT).$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(FV_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Formal Verification Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	echo '' > '$(@:%.$(MAKE_DEPS_EXT)=%.1.$(ARGS_EXT))'; \
@@ -530,7 +537,7 @@ $(OUT_SYNTH_DEV_DIR)/%.$(OBJ_BLIF_EXT) $(OUT_SYNTH_DEV_DIR)/%.$(OBJ_EDIF_EXT) $(
 
 .PRECIOUS: $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT) $(OUT_SYNTH_DEV_DIR)/%.$(ARGS_EXT)
 $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(SYNTH_ARGS_EXT) $(SRC_DIR)/%.$(TOP_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Top-Level Synthesis Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	num_args=$$(wc -l < '$<'); \
@@ -540,7 +547,7 @@ $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(SYNTH_ARGS_EXT) $(SRC_DI
 	seq $${num_args} | $(xargs) -I ^ echo 'include $(@:%.$(MAKE_DEPS_EXT)=%.^.$(MAKE_DEPS_EXT))' >> '$@';
 
 $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT): $(SRC_DIR)/%.$(TOP_SRC_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	echo '[DEPENDS ] $(call top_module_name_from_src): Creating Top-Level Synthesis Makefile dependencies and arguments ($< -> $@)'; \
 	mkdir -p '$(dir $@)'; \
 	echo '' > '$(@:%.$(MAKE_DEPS_EXT)=%.1.$(ARGS_EXT))'; \
@@ -576,7 +583,7 @@ $(OUT_PNR_PKG_DIR)/%.$(OBJ_SDC_EXT): # Prerequisites are added by the generated 
 
 .PRECIOUS: $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)
 $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT): $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	num_args=$(words $(shell find '$(dir $<)' -name '$(notdir $(<:%.$(MAKE_DEPS_EXT)=%.*.$(ARGS_EXT)))' -type f)); \
 	echo "[DEPENDS ] $(call top_module_name_from_src): Creating Top-Level PNR Makefile dependencies for $${num_args} variants ($< -> $@)"; \
 	[ $${num_args} -gt 0 ] || (echo && echo '*** No prerequisites for $@; check for corresponding *.$(ARGS_EXT) in $(OUT_SYNTH_DEV_DIR)' && exit 1); \
@@ -606,7 +613,7 @@ $(OUT_BITS_PKG_DIR)/%.$(DONE_EXT): $(OUT_BITS_PKG_DIR)/%.$(MAKE_DEPS_EXT) $(OUT_
 
 .PRECIOUS: $(OUT_BITS_PKG_DIR)/%.$(MAKE_DEPS_EXT)
 $(OUT_BITS_PKG_DIR)/%.$(MAKE_DEPS_EXT): $(OUT_PNR_PKG_DIR)/%.$(MAKE_DEPS_EXT)
-	@set -e; \
+	@set -e -o pipefail; \
 	num_args=$(words $(shell find '$(dir $(<:$(OUT_PNR_PKG_DIR)/%=$(OUT_SYNTH_DEV_DIR)/%))' -name '$(notdir $(<:%.$(MAKE_DEPS_EXT)=%.*.$(ARGS_EXT)))' -type f)); \
 	echo "[DEPENDS ] $(call top_module_name_from_src): Creating Top-Level Bitstream Makefile dependencies for $${num_args} variants ($< -> $@)"; \
 	[ $${num_args} -gt 0 ] || (echo && echo '*** No prerequisites for $@; check for corresponding *.$(ARGS_EXT) in $(OUT_SYNTH_DEV_DIR)' && exit 1); \
