@@ -43,6 +43,9 @@ The build infrastructure in this repository works off some conventions:
 - Filenames and `module`s are treated as case-sensitive and must match
 - The directory of the file being compiled, along with parent directories, are automatically added to the simulator's / synthesiser's include and library paths so other `module`s at the same level in the hierarchy are automatically discoverable (ie. no `include` is necessary)
 - The `module`s and files must only reference `modules` and files in the same directory, a parent directory or a sibling directory, but not in sub-directories; this keeps the dependency arrows all pointing in the same direction and allows [Inversion of Control](https://en.wikipedia.org/wiki/Inversion_of_control); only the [Composition Root](https://blog.ploeh.dk/2011/07/28/CompositionRoot/) can break this rule as all dependencies must be known at synthesis time
+- As well as the above rule on dependency resolution, the Top-Level Modules, including Testbenches and Formal Verification Proofs, are allowed to add their own library and include paths to the compiler's command-line.  The paths are always relative to the root of the source tree.  Adding a search path is accomplished by adding one of the following directives on a line by themselves _to the top-level file_; the pattern _must_ be followed exactly (eg. no trailing whitespace or comments), and such directives in non-top-level `.sv` files will be ignored:
+  - `//# library_path "@src/your-path/for-modules/goes/here"`
+  - `//# include_path "@src/your-path/for-includes/goes/here"`
 - In the case of synthesis, the Composition Root is the top-level `module`; for simulation it is a Testbench or Formal Verification Proof
 - Top-Level Modules:
   - Have a file extension of `.top.sv`; `.v` is used for `sv2v` pre-processed output
@@ -58,12 +61,9 @@ The build infrastructure in this repository works off some conventions:
   - Have a file named the same as the `module` under test, with an extension of `.fv.sv`
   - Have a `module` named `{BASENAME}Proof` which is the top-level
   - Can have a side-by-side file named `{FILENAME}.args` containing arguments for module parameters and definitions; one line corresponds to one run
-- SystemVerilog / Verilog `module`s:
+- SystemVerilog / Verilog `module`s and `interface`s:
   - Have a file extension of `.sv`; `.v` is used for `sv2v` pre-processed output
   - Have a `module` named `{BASENAME}` to allow them to be automatically discovered by the tooling
-- SystemVerilog `interfaces`s:
-  - Have a file extension of `.if.sv`
-  - Have an `interface` named `{BASENAME}` to allow them to be automatically discovered by the tooling
 - SystemVerilog / Verilog header files for `include`s:
   - Have a file extension of `.h.sv`
 - Documentation:
