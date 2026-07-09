@@ -25,7 +25,6 @@ I wanted to strip my workflow back to something simpler that still allows automa
 Required packages for building, testing and verification.  Where possible I have tried to rely on commonly available tooling rather than take a new dependency.  Most of the dependencies are for the simulation and implementation parts of the workflow:
 - [abc](https://github.com/YosysHQ/abc) - synthesis tool for mapping
 - [bash](https://www.gnu.org/software/bash/) - BASH
-- [boolector](https://github.com/boolector/boolector.git) - an SMT solver for formal verification
 - [gmake](https://www.gnu.org/software/make/manual/make.html) - GNU Make
 - [iverilog](https://github.com/steveicarus/iverilog) - Icarus Verilog simulator for running testbenches
 - [mdBook](https://github.com/rust-lang/mdBook) - compiles Markdown documentation into an HTML site

@@ -29,7 +29,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 rsync yosys yosys-abc;
+          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 pyenv rsync yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
