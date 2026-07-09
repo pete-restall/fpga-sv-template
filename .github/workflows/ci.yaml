@@ -78,6 +78,7 @@ jobs:
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
 
+          python -m pip install pyenv;
           python -m pyenv python;
           . python/bin/activate;
           python -m pip install apycula;
