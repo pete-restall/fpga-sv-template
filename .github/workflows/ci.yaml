@@ -33,7 +33,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog pipx rsync yosys yosys-abc;
+          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog libboost-dev pipx rsync yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
