@@ -29,7 +29,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 rsync yosys yosys-abc;
+          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 rsync uv yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
@@ -72,15 +72,13 @@ jobs:
 
           popd;
 
-      - name: 'Tooling: Download and Install Python'
+      - name: 'Tooling: Set up Python Environment'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
-          pushd "${GITHUB_WORKSPACE}/build/tools";
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools/python" && pushd "${GITHUB_WORKSPACE}/build/tools/python";
 
-          python -m pip install wheel;
-          python -m pip install pyenv;
-          python -m pyenv python;
+          uv init;
 
           popd;
 
@@ -89,9 +87,7 @@ jobs:
         run: |
           set -e;
           pushd "${GITHUB_WORKSPACE}/build/tools/python";
-
-          . bin/activate;
-          python -m pip install apycula;
+          uv add --link-mode=copy apycula;
 
           popd;
 
@@ -129,7 +125,7 @@ jobs:
         run: |
           set -e;
           TOOLS="${GITHUB_WORKSPACE}/build/tools";
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" GOWIN_PACK=\"${TOOLS}/python/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" GOWIN_PACK=\"${TOOLS}/python/.venv/bin/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
