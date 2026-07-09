@@ -23,9 +23,9 @@ jobs:
   build:
     runs-on: ubuntu-26.04
     env:
-      - TOOLS: "${{github.workspace}}/build/tools"
-      - PIPX_HOME: "${TOOLS}/python"
-      - PIPX_BIN_DIR: "${PIPX_HOME}/bin"
+      TOOLS: "${{github.workspace}}/build/tools"
+      PIPX_HOME: "${TOOLS}/python"
+      PIPX_BIN_DIR: "${PIPX_HOME}/bin"
     steps:
       - uses: actions/checkout@v5
 
