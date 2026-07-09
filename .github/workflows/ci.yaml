@@ -29,7 +29,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 pyenv rsync yosys yosys-abc;
+          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 rsync yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
@@ -72,15 +72,25 @@ jobs:
 
           popd;
 
+      - name: 'Tooling: Download and Install Python'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          set -e;
+          pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          python -m pip install wheel;
+          python -m pip install pyenv;
+          python -m pyenv python;
+
+          popd;
+
       - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
-          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+          pushd "${GITHUB_WORKSPACE}/build/tools/python";
 
-          python -m pip install pyenv;
-          python -m pyenv python;
-          . python/bin/activate;
+          . bin/activate;
           python -m pip install apycula;
 
           popd;
@@ -89,7 +99,7 @@ jobs:
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
-          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+          pushd "${GITHUB_WORKSPACE}/build/tools";
 
           git clone https://github.com/zachjs/sv2v.git;
           pushd sv2v && make && popd;
@@ -100,7 +110,7 @@ jobs:
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
-          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+          pushd "${GITHUB_WORKSPACE}/build/tools";
 
           mkdir -p mdbook;
           curl -sSL https://github.com/rust-lang/mdBook/releases/download/v0.5.3/mdbook-v0.5.3-x86_64-unknown-linux-gnu.tar.gz | tar -xz --directory=mdbook;
