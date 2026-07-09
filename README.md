@@ -1,6 +1,6 @@
 # FPGA System Verilog OSS Workflow Template
 
-_I wanted something simple but what I actually got was a Makefile... &#x1f610;_
+_I wanted something simple but what I actually got was a Makefile..._ &#x1f610;
 
 ## What is this ?
 A template project for a conventions-based FPGA workflow built with OSS tooling.  This is a SystemVerilog-based workflow and consists of the following steps:
@@ -27,16 +27,22 @@ Required packages for building, testing and verification.  Where possible I have
 - [bash](https://www.gnu.org/software/bash/) - BASH
 - [boolector](https://github.com/boolector/boolector.git) - an SMT solver for formal verification
 - [gmake](https://www.gnu.org/software/make/manual/make.html) - GNU Make
-- [icestorm](https://github.com/YosysHQ/icestorm) - utilities for working with iCE40 FPGAs and bitstreams
 - [iverilog](https://github.com/steveicarus/iverilog) - Icarus Verilog simulator for running testbenches
 - [mdBook](https://github.com/rust-lang/mdBook) - compiles Markdown documentation into an HTML site
 - [nextpnr](https://github.com/YosysHQ/nextpnr) - implementation tool for placing and routing (PnR)
+- [Python](https://www.python.org/) - Python for running some of the tools (not required to use the workflow itself; `make` does the heavy lifting)
 - [rsync](https://rsync.samba.org/) - efficient file copying for constructing the documentation
 - [sby](https://github.com/YosysHQ/sby.git) - a front-end for Yosys formal verification
 - [sv2v](https://github.com/zachjs/sv2v) - conversion of SystemVerilog into Verilog for wider tool compatibility and semantic agreement
 - [Wavedrom](https://github.com/wavedrom/wavedrom) - converts JSON5 descriptions into SVG images of waveforms, timings, circuits and registers
 - [Yices](https://github.com/SRI-CSL/yices2.git) - an SMT solver for formal verification
 - [Yosys](https://github.com/YosysHQ) - various front-end tools for formal verification and synthesis
+- For Lattice iCE40 FPGA Support:
+  - [icestorm](https://github.com/YosysHQ/icestorm) - utilities for working with Lattice iCE40 FPGAs and bitstreams
+  - [nextpnr-ice40](https://github.com/YosysHQ/nextpnr) - Lattice iCE40-specific nextpnr plugins and tools
+- For Gowin GW2A FPGA Support:
+  - [apicula](https://github.com/YosysHQ/apicula) - utilities for working with Gowin GW2A FPGAs and bitstreams
+  - [nextpnr-himbaechel](https://github.com/YosysHQ/nextpnr) - Gowin GW2A-specific nextpnr plugins and tools
 
 ## Conventions
 The build infrastructure in this repository works off some conventions:

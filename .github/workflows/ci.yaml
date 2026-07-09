@@ -29,7 +29,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-ice40 rsync yosys yosys-abc;
+          sudo apt-get -q -y install curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 rsync yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
@@ -87,6 +87,18 @@ jobs:
 
           popd;
 
+      - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          set -e;
+          mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
+
+          python -m pyenv python;
+          . python/bin/activate;
+          python -m pip install apycula;
+
+          popd;
+
       - name: 'Tooling: Download and Install SV2V'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
@@ -121,11 +133,13 @@ jobs:
         run: |
           set -e;
           TOOLS="${GITHUB_WORKSPACE}/build/tools";
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" GOWIN_PACK=\"${TOOLS}/python/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
           ${MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
+
+          ${MAKE} SYNTH_TARGET=gw2alv18 PNR_PACKAGE=pg256 GOWIN_SPEED_GRADE=C8/I7;
           popd;
 
       - name: 'Bundle Artefacts'

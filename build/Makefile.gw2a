@@ -1,0 +1,58 @@
+GOWIN_PACK := gowin_pack
+
+GOWIN_SPEED_GRADE := C8/I7
+
+OUT_SYNTH_GW2ALV18_DIR := $(OUT_SYNTH_DIR)/gw2alv18
+OUT_PNR_GW2ALV18_PG256_DIR := $(OUT_PNR_DIR)/gw2alv18/pg256
+
+# TODO: tee THE OUTPUT OF THE SYNTHESIS, PNR AND BITSTREAM SCRIPTS INTO LOG FILES; REMEMBER TO MARK THE ARTEFACTS AS PRECIOUS...
+
+define script_create_synth_gowin_ys
+	cat > '$@' <<-EOF
+		read_verilog -defer $<
+
+		chparam $(call args_yosys_chparams_from,$(lastword $^)) $(call top_module_name_from_src)
+
+		synth_gowin \
+			-family gw2a \
+			-top $(call top_module_name_from_src) \
+			-json $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_JSON_EXT))
+
+		write_blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT))
+		write_edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT))
+		write_verilog -noexpr $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_GATE_V_EXT))
+	EOF
+endef
+
+export script_create_synth_gowin_ys
+
+define script_nextpnr_gowin
+	nextpnr-himbaechel \
+		$${nextpnr_args} \
+		--json '$<' \
+		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
+		--report '$(call remove_suffixes,$@,.$(OBJ_ASC_EXT) .$(OBJ_JSON_EXT)).report.$(OBJ_JSON_EXT)' \
+		--detailed-timing-report \
+		--sdc '$(firstword $(filter %.$(OBJ_SDC_EXT),$^))' \
+		--vopt cst='$(firstword $(filter %.$(OBJ_PCF_EXT),$^))';
+endef
+
+export script_nextpnr_gowin
+
+.PRECIOUS: $(OUT_SYNTH_GW2ALV18_DIR)/%.$(OBJ_YS_EXT)
+$(OUT_SYNTH_GW2ALV18_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_GW2ALV18_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_GW2ALV18_DIR)/%.$(ARGS_EXT)
+	@set -e; \
+	eval "$${script_create_synth_gowin_ys}";
+
+.PRECIOUS: $(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.report.$(OBJ_JSON_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.svg
+$(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_GW2ALV18_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_GW2ALV18_PG256_DIR)/%.$(OBJ_SDC_EXT)
+	@set -e; \
+	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+	eval "nextpnr_args='--device GW2A-LV18PG256$(GOWIN_SPEED_GRADE) --vopt family=GW2A-18C'; $${script_nextpnr_gowin}"; \
+	cp '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' '$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))';
+
+.PRECIOUS: $(OUT_PNR_DIR)/gw2alv18%.$(OBJ_BITS_EXT)
+$(OUT_BITS_DIR)/gw2alv18%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/gw2alv18%.$(OBJ_ASC_EXT) $(OUT_BITS_DIR)/gw2alv18%.$(OBJ_PCF_EXT)
+	@set -e; \
+	echo "[BITS    ] $(call top_module_name_from_src): Creating bitstream ($< -> $@)"; \
+	$(GOWIN_PACK) --compress --device GW2A-18C --cst '$(firstword $(filter %.$(OBJ_PCF_EXT),$^))' -o '$@' '$<';

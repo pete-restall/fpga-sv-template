@@ -279,10 +279,20 @@ basename_dot_suffix = $(call remove_dot_suffix,$(basename $(1)))
 remove_dot_suffix = $(call _remove_dot_suffix,$(1),$(all_possible_args))
 _remove_dot_suffix = $(strip $(if $(firstword $(2)), \
 	$(call _remove_dot_$(firstword $(2))_suffix, \
-		$(call _remove_dot_suffix,$(1), $(wordlist 2,$(words $(2)),$(2))) \
+		$(call _remove_dot_suffix,$(1),$(wordlist 2,$(words $(2)),$(2))) \
 	), \
 	$(1) \
 ))
+
+remove_suffixes = $(strip $(if $(firstword $(2)), \
+	$(if $(call str_eq,$(call remove_suffix,$(1),$(firstword $(2))),$(1)), \
+		$(call remove_suffixes,$(1),$(wordlist 2,$(words $(2)),$(2))), \
+		$(call remove_suffix,$(1),$(firstword $(2))) \
+	), \
+	$(1) \
+))
+remove_suffix = $(1:%$(2)=%)
+str_eq = $(if $(1:$(2)%=%),,eq)
 
 args_only_defines_from_src = $(call args_only_defines_from,$<)
 args_only_defines_from = $(shell $(SHELL) -c "[ -f '$(1)' ] && (cat '$(1)' | sed -E \"s/(-D[^ =]+(=(([^\\\"' ]*)|('[^']*')|(\\\"[^\\\"]*\\\")))?)/\\n\\1\\n/g\" | sed -E 's/ /\\ /g' | grep '^-D')")
@@ -522,6 +532,7 @@ $(OUT_VERIFICATION_DIR)/%/proof.$(OBJ_SBY_EXT): $(OUT_VERIFICATION_DIR)/%.$(OBJ_
 ### Synthesis...
 
 include Makefile.ice40
+include Makefile.gw2a
 
 .PRECIOUS: $(OUT_SYNTH_DEV_DIR)/%.$(DONE_EXT)
 $(OUT_SYNTH_DEV_DIR)/%.$(DONE_EXT): $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT)

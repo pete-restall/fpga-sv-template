@@ -1,3 +1,5 @@
+ICEPACK := icepack
+
 OUT_SYNTH_ICE40UP5K_DIR := $(OUT_SYNTH_DIR)/ice40up5k
 OUT_PNR_ICE40UP5K_SG48_DIR := $(OUT_PNR_DIR)/ice40up5k/sg48
 
@@ -15,10 +17,10 @@ define script_create_synth_ice40_ys
 		synth_ice40 \
 			-device $${device} \
 			-top $(call top_module_name_from_src) \
-			-blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT)) \
-			-edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT)) \
 			-json $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_JSON_EXT))
 
+		write_blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT))
+		write_edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT))
 		write_verilog -noexpr $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_GATE_V_EXT))
 	EOF
 endef
@@ -30,7 +32,7 @@ define script_nextpnr_ice40
 		$${nextpnr_args} \
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
-		--report '$(@:%.$(OBJ_ASC_EXT)=%.report.$(OBJ_JSON_EXT))' \
+		--report '$(call remove_suffixes,$@,.$(OBJ_ASC_EXT) .$(OBJ_JSON_EXT)).report.$(OBJ_JSON_EXT)' \
 		--detailed-timing-report \
 		--sdc '$(firstword $(filter %.$(OBJ_SDC_EXT),$^))' \
 		--pcf '$(firstword $(filter %.$(OBJ_PCF_EXT),$^))' \
@@ -65,4 +67,4 @@ $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/
 $(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/ice40%.$(OBJ_ASC_EXT)
 	@set -e; \
 	echo "[BITS    ] $(call top_module_name_from_src): Creating bitstream ($< -> $@)"; \
-	icepack '$<' '$@';
+	$(ICEPACK) '$<' '$@';
