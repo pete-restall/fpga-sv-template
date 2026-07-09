@@ -95,6 +95,8 @@ SBY := sby
 SBY_ALL_FLAGS :=
 SBY_PROOF_FLAGS := $(SBY_ALL_FLAGS) -f
 
+NEXTPNR_PREFIX :=
+
 MDBOOK := mdbook
 RSYNC := rsync
 RSYNC_DOC_FLAGS := --force --delete -r -m -h --exclude '*.$(DOC_WAVEDROM_SRC_EXT)'

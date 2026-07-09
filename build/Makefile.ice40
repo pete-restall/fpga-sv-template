@@ -28,7 +28,7 @@ endef
 export script_create_synth_ice40_ys
 
 define script_nextpnr_ice40
-	nextpnr-ice40 \
+	'$(NEXTPNR_PREFIX)nextpnr-ice40' \
 		$${nextpnr_args} \
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \

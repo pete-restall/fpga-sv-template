@@ -27,7 +27,7 @@ endef
 export script_create_synth_gowin_ys
 
 define script_nextpnr_gowin
-	nextpnr-himbaechel \
+	'$(NEXTPNR_PREFIX)nextpnr-himbaechel' \
 		$${nextpnr_args} \
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \

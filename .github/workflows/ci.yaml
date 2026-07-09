@@ -33,7 +33,7 @@ jobs:
         run: |
           set -e;
           sudo apt-get -q -y update;
-          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog nextpnr-himbaechel nextpnr-ice40 pipx rsync yosys yosys-abc;
+          sudo apt-get -q -y install cmake curl fpga-icestorm git gperf haskell-stack iverilog pipx rsync yosys yosys-abc;
 
           npm install -g --ignore-scripts wavedrom;
 
@@ -97,6 +97,28 @@ jobs:
 
           popd;
 
+      - name: 'Tooling: Download, Build and Install nextpnr'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          set -e;
+          pushd "${TOOLS}";
+
+          git clone https://github.com/YosysHQ/nextpnr.git;
+          git clone https://github.com/f4pga/prjxray-db.git;
+
+          mkdir -p nextpnr/build && pushd nextpnr/build;
+          cmake .. \
+            -DARCH="ice40;himbaechel" \
+            -DHIMBAECHEL_UARCH="gowin;xilinx" \
+            -DICESTORM_INSTALL_PREFIX=/usr \
+            -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
+            -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
+
+          make -j$(nproc) && make install;
+          popd;
+
+          popd;
+
       - name: 'Tooling: Download and Install mdBook'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
@@ -119,7 +141,7 @@ jobs:
       - name: 'Test, Synthesise, Place-and-Route, Pack Bitstream and Generate Documentation'
         run: |
           set -e;
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
