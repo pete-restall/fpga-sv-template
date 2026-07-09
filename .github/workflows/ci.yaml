@@ -43,6 +43,7 @@ jobs:
             iverilog \
             libboost-dev \
             libboost-program-options-dev \
+            libboost-iostreams-dev \
             pipx \
             rsync \
             yosys \
