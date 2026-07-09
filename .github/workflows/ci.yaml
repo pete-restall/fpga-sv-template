@@ -46,16 +46,6 @@ jobs:
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
 
-          git clone https://github.com/boolector/boolector.git;
-          pushd boolector;
-          ./contrib/setup-btor2tools.sh;
-          ./contrib/setup-lingeling.sh;
-          ./configure.sh;
-          make -C build;
-          sudo cp build/bin/{boolector,btor*} /usr/local/bin/;
-          sudo cp deps/btor2tools/build/bin/btorsim /usr/local/bin/;
-          popd;
-
           git clone https://github.com/SRI-CSL/yices2.git;
           pushd yices2;
           autoconf;
@@ -73,11 +63,6 @@ jobs:
         run: |
           set -e;
           mkdir -p "${GITHUB_WORKSPACE}/build/tools" && pushd "${GITHUB_WORKSPACE}/build/tools";
-
-          pushd boolector;
-          sudo cp build/bin/{boolector,btor*} /usr/local/bin/;
-          sudo cp deps/btor2tools/build/bin/btorsim /usr/local/bin/;
-          popd;
 
           pushd yices2;
           sudo make install;
