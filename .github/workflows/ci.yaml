@@ -37,6 +37,7 @@ jobs:
             cmake \
             curl \
             fpga-icestorm \
+            fpga-icestorm-chipdb \
             git \
             gperf \
             haskell-stack \
@@ -118,7 +119,7 @@ jobs:
         run: |
           set -e;
           pushd "${TOOLS}";
-          . "${PIPX_HOME}/venvs/apycula/bin/activate";
+          . "${PIPX_HOME}/venvs/apycula/bin/actiZvate";
 
           git clone https://github.com/YosysHQ/nextpnr.git;
           git clone https://github.com/f4pga/prjxray-db.git;
@@ -130,7 +131,8 @@ jobs:
           cmake .. \
             -DARCH="ice40;himbaechel" \
             -DHIMBAECHEL_UARCH="gowin;xilinx" \
-            -DICESTORM_INSTALL_PREFIX=/usr/local \
+            -DICESTORM_INSTALL_PREFIX=/usr \
+            -DICEBOX_DATADIR=/usr/share/fpga-icestorm/chipdb \
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
             -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
 
