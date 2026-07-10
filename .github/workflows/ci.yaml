@@ -45,6 +45,7 @@ jobs:
             libboost-iostreams-dev \
             libboost-program-options-dev \
             libboost-thread-dev \
+            libeigen3-dev \
             pipx \
             rsync \
             yosys \
