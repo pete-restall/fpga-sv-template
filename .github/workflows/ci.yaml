@@ -163,7 +163,7 @@ jobs:
       - name: 'Test, Synthesise, Place-and-Route, Pack Bitstream and Generate Documentation'
         run: |
           set -e;
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/bin/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
