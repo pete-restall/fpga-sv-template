@@ -132,6 +132,7 @@ jobs:
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
             -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
 
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
           make -j$(nproc) && make install;
           popd;
 
