@@ -118,12 +118,14 @@ jobs:
         run: |
           set -e;
           pushd "${TOOLS}";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
           git clone https://github.com/YosysHQ/nextpnr.git;
           git clone https://github.com/f4pga/prjxray-db.git;
 
           mkdir -p nextpnr/build && pushd nextpnr;
           git submodule update --init --recursive;
+
           cd build;
           cmake .. \
             -DARCH="ice40;himbaechel" \
@@ -132,7 +134,6 @@ jobs:
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
             -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
 
-          . "${PIPX_HOME}/venvs/apycula/bin/activate";
           make -j$(nproc) && make install;
           popd;
 
