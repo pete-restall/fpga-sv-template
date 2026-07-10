@@ -130,7 +130,7 @@ jobs:
           cmake .. \
             -DARCH="ice40;himbaechel" \
             -DHIMBAECHEL_UARCH="gowin;xilinx" \
-            -DICESTORM_INSTALL_PREFIX=/usr \
+            -DICESTORM_INSTALL_PREFIX=/usr/local \
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
             -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
 
