@@ -119,7 +119,7 @@ jobs:
         run: |
           set -e;
           pushd "${TOOLS}";
-          . "${PIPX_HOME}/venvs/apycula/bin/actiZvate";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
           git clone https://github.com/YosysHQ/nextpnr.git;
           git clone https://github.com/f4pga/prjxray-db.git;
