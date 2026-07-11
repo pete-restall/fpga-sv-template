@@ -98,6 +98,8 @@ jobs:
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
+          pip install click;
+
           pushd yices2;
           sudo make install;
           popd;
