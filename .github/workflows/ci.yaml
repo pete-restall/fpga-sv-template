@@ -62,11 +62,22 @@ jobs:
           path: ${{github.workspace}}/build/tools
           key: ${{runner.os}}-build-tools
 
+      - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          set -e;
+          mkdir -p "${PIPX_HOME}" && pushd "${PIPX_HOME}";
+
+          pipx install --force apycula;
+
+          popd;
+
       - name: 'Tooling: Download and Install SBY'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
           set -e;
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
           git clone https://github.com/SRI-CSL/yices2.git;
           pushd yices2;
@@ -85,6 +96,7 @@ jobs:
         run: |
           set -e;
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
           pushd yices2;
           sudo make install;
@@ -102,16 +114,6 @@ jobs:
 
           git clone https://github.com/zachjs/sv2v.git;
           pushd sv2v && make && popd;
-
-          popd;
-
-      - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
-        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
-        run: |
-          set -e;
-          mkdir -p "${PIPX_HOME}" && pushd "${PIPX_HOME}";
-
-          pipx install --force apycula;
 
           popd;
 
