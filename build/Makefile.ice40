@@ -63,7 +63,7 @@ $(OUT_PNR_ICE40HX1K_TQ144_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_ICE40HX1K_TQ144_DIR)/
 	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
 	eval "nextpnr_args='--hx1k --package tq144'; $${script_nextpnr_ice40}";
 
-.PRECIOUS: $(OUT_PNR_DIR)/ice40%.$(OBJ_BITS_EXT)
+.PRECIOUS: $(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT)
 $(OUT_BITS_DIR)/ice40%.$(OBJ_BITS_EXT): $(OUT_PNR_DIR)/ice40%.$(OBJ_ASC_EXT)
 	@set -e; \
 	echo "[BITS    ] $(call top_module_name_from_src): Creating bitstream ($< -> $@)"; \
