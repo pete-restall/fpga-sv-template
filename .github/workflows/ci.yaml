@@ -179,9 +179,11 @@ jobs:
       - name: 'Test, Synthesise, Place-and-Route, Pack Bitstream and Generate Documentation'
         run: |
           set -e;
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/build/out/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
+
           make --version;
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/build/out/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
           ${MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
 
