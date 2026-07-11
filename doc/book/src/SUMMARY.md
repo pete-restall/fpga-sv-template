@@ -8,7 +8,7 @@
 - [iCEstick](./toplevel/icestick/IceStick.top.md)
 - [iCE Sugar](./toplevel/icesugar/IceSugar.top.md)
 - [Tang Primer 20k](./toplevel/tang-primer-20k/TangPrimer20k.top.md)
-
+- [Puzhi Artix-7 PA35T Starlite](./toplevel/puzhi-pa35t-starlite/PuzhiPa35tStarlite.top.md)
 
 # Components
 
