@@ -78,6 +78,7 @@ jobs:
           set -e;
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
+          pip install click;
 
           git clone https://github.com/SRI-CSL/yices2.git;
           pushd yices2;
@@ -97,8 +98,6 @@ jobs:
           set -e;
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
-
-          pip install click;
 
           pushd yices2;
           sudo make install;
