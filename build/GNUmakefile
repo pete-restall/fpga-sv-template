@@ -535,6 +535,7 @@ $(OUT_VERIFICATION_DIR)/%/proof.$(OBJ_SBY_EXT): $(OUT_VERIFICATION_DIR)/%.$(OBJ_
 
 include Makefile.ice40
 include Makefile.gw2a
+include Makefile.xc7a
 
 .PRECIOUS: $(OUT_SYNTH_DEV_DIR)/%.$(DONE_EXT)
 $(OUT_SYNTH_DEV_DIR)/%.$(DONE_EXT): $(OUT_SYNTH_DEV_DIR)/%.$(MAKE_DEPS_EXT)

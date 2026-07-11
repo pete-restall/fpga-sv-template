@@ -42,10 +42,18 @@ Required packages for building, testing and verification.  Where possible I have
 - For Gowin GW2A FPGA Support:
   - [apicula](https://github.com/YosysHQ/apicula) - utilities for working with Gowin GW2A FPGAs and bitstreams
   - [nextpnr-himbaechel](https://github.com/YosysHQ/nextpnr) - Gowin GW2A-specific nextpnr plugins and tools
+- For Xilinx XC7 (Artix) FPGA Support:
+  - [Project X-Ray](https://github.com/f4pga/prjxray) - utilities for working with Xilinx FPGAs and bitstreams
+  - [Project X-Ray Databases](https://github.com/f4pga/prjxray-db) - fuzzed databases for Xilinx FPGA bitstreams
+  - [nextpnr-himbaechel](https://github.com/YosysHQ/nextpnr) - Xilinx-specific nextpnr plugins and tools
 
 ## Conventions
 The build infrastructure in this repository works off some conventions:
 - Filenames and `module`s are treated as case-sensitive and must match
+- Where possible, filenames try to be consistently named regardless of vendor; for example bitstreams, physical and timing constraint file syntax and extensions differ across vendors.  The syntax of the contents has to match the tool, but the file extensions often do not.  For example:
+  - Timing constraints in these workflows always use a `.sdc` extension even though, for example, Xilinx uses `.xdc` for their tools; the syntax of the contents _must_ be vendor-appropriate, however
+  - Physical constraints always use a `.pcf` extension; again, as examples, Gowin use `.cst` and Xilinx use a single `.xdc` for both timing and physical constraints; the `Makefile` recipes and tools in this workflow need them separately
+  - Bitstream outputs always use a `.bits` extension; `openFPGALoader` makes some bold assumptions based on file extension, for example Gowin bitstreams only work with a `.fs` extension, Xilinx with a `.bit` extension, etc.  The `Makefile` will create a vendor-specific copy in these cases
 - The directory of the file being compiled, along with parent directories, are automatically added to the simulator's / synthesiser's include and library paths so other `module`s at the same level in the hierarchy are automatically discoverable (ie. no `include` is necessary)
 - The `module`s and files must only reference `modules` and files in the same directory, a parent directory or a sibling directory, but not in sub-directories; this keeps the dependency arrows all pointing in the same direction and allows [Inversion of Control](https://en.wikipedia.org/wiki/Inversion_of_control); only the [Composition Root](https://blog.ploeh.dk/2011/07/28/CompositionRoot/) can break this rule as all dependencies must be known at synthesis time
 - As well as the above rule on dependency resolution, the Top-Level Modules, including Testbenches and Formal Verification Proofs, are allowed to add their own library and include paths to the compiler's command-line.  The paths are always relative to the root of the source tree.  Adding a search path is accomplished by adding one of the following directives on a line by themselves _to the top-level file_; the pattern _must_ be followed exactly (eg. no trailing whitespace or comments), and such directives in non-top-level `.sv` files will be ignored:

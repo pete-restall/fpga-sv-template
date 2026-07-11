@@ -1,0 +1,78 @@
+PROJECT_XRAY_PATH := /usr/local/share/prjxray
+PROJECT_XRAY_DB_PATH ?= $(PROJECT_XRAY_PATH)-db
+
+XILINX_SPEED_GRADE := 2
+
+OUT_SYNTH_XC7A35T_DIR := $(OUT_SYNTH_DIR)/xc7a35t
+OUT_PNR_XC7A35T_FGG484_DIR := $(OUT_PNR_DIR)/xc7a35t/fgg484
+OUT_BITS_XC7A35T_FGG484_DIR := $(OUT_BITS_DIR)/xc7a35t/fgg484
+
+# TODO: tee THE OUTPUT OF THE SYNTHESIS, PNR AND BITSTREAM SCRIPTS INTO LOG FILES; REMEMBER TO MARK THE ARTEFACTS AS PRECIOUS...
+
+define script_create_synth_xilinx_ys
+	cat > '$@' <<-EOF
+		read_verilog -defer $<
+
+		chparam $(call args_yosys_chparams_from,$(lastword $^)) $(call top_module_name_from_src)
+
+		synth_xilinx \
+			-arch xc7 \
+			-top $(call top_module_name_from_src) \
+			-json $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_JSON_EXT))
+
+		write_blif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_BLIF_EXT))
+		write_edif $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_EDIF_EXT))
+		write_verilog -noexpr $(@:%.$(OBJ_YS_EXT)=%.$(OBJ_GATE_V_EXT))
+	EOF
+endef
+
+export script_create_synth_xilinx_ys
+
+define script_nextpnr_xilinx
+	'$(NEXTPNR_PREFIX)nextpnr-himbaechel' \
+		$${nextpnr_args} \
+		--json '$<' \
+		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
+		--report '$(call remove_suffixes,$@,.$(OBJ_ASC_EXT) .$(OBJ_JSON_EXT)).report.$(OBJ_JSON_EXT)' \
+		--detailed-timing-report \
+		--sdc '$(firstword $(filter %.$(OBJ_SDC_EXT),$^))' \
+		--vopt xdc='$(firstword $(filter %.$(OBJ_PCF_EXT),$^))' \
+		--vopt fasm='$(@:%.$(OBJ_JSON_EXT)=%.$(OBJ_ASC_EXT))';
+endef
+
+export script_nextpnr_xilinx
+
+define script_xraybits_xilinx
+	python '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
+		--part "$${device}" \
+		--db-root "$(PROJECT_XRAY_DB_PATH)/artix7" \
+		'$(firstword $(filter %.$(OBJ_ASC_EXT),$^))' \
+		'$(@:%.$(OBJ_BITS_EXT)=%.frames)'; \
+	\
+	'$(PROJECT_XRAY_PATH)/build/tools/xc7frames2bit' \
+		--part_file "$(PROJECT_XRAY_DB_PATH)/artix7/$${device}/part.yaml" \
+		--part_name "$${device}" \
+		--frm_file '$(@:%.$(OBJ_BITS_EXT)=%.frames)' \
+		--output_file '$@'; \
+	\
+	cp '$@' '$(@:%.$(OBJ_BITS_EXT)=%.bit)';
+endef
+
+export script_xraybits_xilinx
+
+.PRECIOUS: $(OUT_SYNTH_XC7A35T_DIR)/%.$(OBJ_YS_EXT)
+$(OUT_SYNTH_XC7A35T_DIR)/%.$(OBJ_YS_EXT): $(OUT_SYNTH_XC7A35T_DIR)/%.$(OBJ_EXT) $(OUT_SYNTH_XC7A35T_DIR)/%.$(ARGS_EXT)
+	@set -e; \
+	eval "$${script_create_synth_xilinx_ys}";
+
+.PRECIOUS: $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_ASC_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.report.$(OBJ_JSON_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.svg
+$(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_ASC_EXT): $(OUT_SYNTH_XC7A35T_DIR)/%.$(OBJ_JSON_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_PCF_EXT) $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_SDC_EXT)
+	@set -e; \
+	echo "[PNR     ] $(call top_module_name_from_src): Placing and Routing ($< -> $@)"; \
+	eval "nextpnr_args='--device xc7a35tfgg484-$(XILINX_SPEED_GRADE)'; $${script_nextpnr_xilinx}";
+
+.PRECIOUS: $(OUT_BITS_XC7A35T_FGG484_DIR)/%.$(OBJ_BITS_EXT) $(OUT_BITS_XC7A35T_FGG484_DIR)/%.frames $(OUT_BITS_XC7A35T_FGG484_DIR)/%.bit
+$(OUT_BITS_XC7A35T_FGG484_DIR)/%.$(OBJ_BITS_EXT): $(OUT_PNR_XC7A35T_FGG484_DIR)/%.$(OBJ_ASC_EXT)
+	@set -e; \
+	echo "[BITS    ] $(call top_module_name_from_src): Creating bitstream ($< -> $@)"; \
+	eval "device='xc7a35tfgg484-$(XILINX_SPEED_GRADE)'; $${script_xraybits_xilinx}";

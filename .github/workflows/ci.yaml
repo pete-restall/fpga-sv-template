@@ -39,6 +39,7 @@ jobs:
             fpga-icestorm \
             fpga-icestorm-chipdb \
             git \
+            gfortran \
             gperf \
             haskell-stack \
             iverilog \
@@ -93,16 +94,6 @@ jobs:
 
           popd;
 
-      - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
-        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
-        run: |
-          set -e;
-          mkdir -p "${PIPX_HOME}" && pushd "${PIPX_HOME}";
-
-          pipx install --force apycula;
-
-          popd;
-
       - name: 'Tooling: Download and Install SV2V'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
@@ -114,6 +105,32 @@ jobs:
 
           popd;
 
+      - name: 'Tooling: Download and Install Project Apicula (Gowin FPGAs)'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          set -e;
+          mkdir -p "${PIPX_HOME}" && pushd "${PIPX_HOME}";
+
+          pipx install --force apycula;
+
+          popd;
+
+      - name: 'Tooling: Download and Install Project X-Ray (Xilinx FPGAs)'
+        if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
+        run: |
+          pushd "${TOOLS}";
+          . "${PIPX_HOME}/venvs/apycula/bin/activate";
+
+          git clone https://github.com/f4pga/prjxray.git;
+          git clone https://github.com/f4pga/prjxray-db.git;
+
+          pushd prjxray;
+          make build;
+          pip install -r requirements.txt;
+          popd;
+
+          popd;
+
       - name: 'Tooling: Download, Build and Install nextpnr'
         if: steps.cache-build-tools-restore.outputs.cache-hit != 'true'
         run: |
@@ -122,7 +139,6 @@ jobs:
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
           git clone https://github.com/YosysHQ/nextpnr.git;
-          git clone https://github.com/f4pga/prjxray-db.git;
 
           mkdir -p nextpnr/build && pushd nextpnr;
           git submodule update --init --recursive;
@@ -134,7 +150,7 @@ jobs:
             -DICESTORM_INSTALL_PREFIX=/usr \
             -DICEBOX_DATADIR=/usr/share/fpga-icestorm/chipdb \
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
-            -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/bin";
+            -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/build/out";
 
           make -j$(nproc) && make install;
           popd;
@@ -163,13 +179,15 @@ jobs:
       - name: 'Test, Synthesise, Place-and-Route, Pack Bitstream and Generate Documentation'
         run: |
           set -e;
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/bin/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/build/out/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           pushd "${GITHUB_WORKSPACE}/build";
           make --version;
           ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
           ${MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
 
           ${MAKE} SYNTH_TARGET=gw2alv18 PNR_PACKAGE=pg256 GOWIN_SPEED_GRADE=C8/I7;
+
+          ${MAKE} SYNTH_TARGET=xc7a35t PNR_PACKAGE=fgg484 XILINX_SPEED_GRADE=2 PROJECT_XRAY_PATH="${TOOLS}/prjxray";
           popd;
 
       - name: 'Bundle Artefacts'
