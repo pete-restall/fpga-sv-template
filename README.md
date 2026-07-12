@@ -90,7 +90,7 @@ The idea of this repository is that it's simply a starting point.  It is expecte
 
 Builds are out-of-tree so as not to clutter the source with objects and artefacts, so `cd build` and run `make` from there.  See the [ci.yaml](.github/workflows/ci.yaml) workflow for an example invocation.
 
-All build artefacts are in `build/out` but there has no attempt at packaging; it is up to you what you pull out and how you package or use that.
+All build artefacts are in `build/out` but there is no attempt at packaging; it is up to you what you pull out and how you package or use that.
 
 I've added top-level blinky modules for some of the FPGA development boards that I have, since that's useful to me, but as long as the Yosys ecosystem can target a given architecture then this workflow ought to be able to target it too.  The Makefiles may need tweaking to do this.
 
