@@ -68,7 +68,7 @@ jobs:
           set -e;
           mkdir -p "${PIPX_HOME}" && pushd "${PIPX_HOME}";
 
-          pipx install --force apycula;
+          pipx install --system-site-packages --force apycula;
 
           popd;
 
@@ -78,7 +78,6 @@ jobs:
           set -e;
           mkdir -p "${TOOLS}" && pushd "${TOOLS}";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
-          pip install click;
 
           git clone https://github.com/SRI-CSL/yices2.git;
           pushd yices2;
