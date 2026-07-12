@@ -11,7 +11,7 @@ The board has a 200MHz LVDS clock input at balls [`R4`,`T4`] with two blue LEDs.
 
 ## Programming
 
-The board is not supported directly by `openFPGALoader` but it does present itself as a Diligent cable meaning that it can be programmed with the following command:
+The board is not supported directly by `openFPGALoader` but it does present itself as a Digilent cable meaning that it can be programmed with the following command:
 
 ```bash
 $ openFPGALoader -c digilent_ad out/xc7a35t/fgg484/toplevel/puzhi-pa35t-starlite/PuzhiPa35tStarlite.1.bit
