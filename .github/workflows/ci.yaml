@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-26.04
     env:
       TOOLS: "${{github.workspace}}/build/tools"
+      TOOLS_LOCAL: "${{github.workspace}}/build/tools/local"
       PIPX_HOME: "${{github.workspace}}/build/tools/python"
       PIPX_BIN_DIR: "${{github.workspace}}/build/tools/python/bin"
     steps:
@@ -82,27 +83,14 @@ jobs:
           git clone https://github.com/SRI-CSL/yices2.git;
           pushd yices2;
           autoconf;
-          ./configure;
-          make && sudo make install;
+          ./configure --prefix="${TOOLS_LOCAL}" --exec-prefix="${TOOLS_LOCAL}";
+          make && make install;
           popd;
 
           git clone https://github.com/YosysHQ/sby.git;
-          pushd sby && sudo make install && popd;
-
+          pushd sby;
+          make && make install PREFIX="${TOOLS_LOCAL}";
           popd;
-
-      - name: 'Tooling: Install SBY from Cached Builds'
-        if: steps.cache-build-tools-restore.outputs.cache-hit == 'true'
-        run: |
-          set -e;
-          mkdir -p "${TOOLS}" && pushd "${TOOLS}";
-          . "${PIPX_HOME}/venvs/apycula/bin/activate";
-
-          pushd yices2;
-          sudo make install;
-          popd;
-
-          pushd sby && sudo make install && popd;
 
           popd;
 
@@ -152,7 +140,7 @@ jobs:
             -DICESTORM_INSTALL_PREFIX=/usr \
             -DICEBOX_DATADIR=/usr/share/fpga-icestorm/chipdb \
             -DHIMBAECHEL_PRJXRAY_DB="${TOOLS}/prjxray-db" \
-            -DCMAKE_INSTALL_PREFIX="${TOOLS}/nextpnr/build/out";
+            -DCMAKE_INSTALL_PREFIX="${TOOLS_LOCAL}";
 
           make -j$(nproc) && make install;
           popd;
@@ -184,14 +172,19 @@ jobs:
           pushd "${GITHUB_WORKSPACE}/build";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
 
+          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS_LOCAL}/bin/" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
           make --version;
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS}/nextpnr/build/out/bin/" GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\" MDBOOK=\"${TOOLS}/mdbook/mdbook\"";
-          ${MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
-          ${MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
 
-          ${MAKE} SYNTH_TARGET=gw2alv18 PNR_PACKAGE=pg256 GOWIN_SPEED_GRADE=C8/I7;
+          ICE40_MAKE="${MAKE}";
+          ${ICE40_MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
+          ${ICE40_MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
 
-          ${MAKE} SYNTH_TARGET=xc7a35t PNR_PACKAGE=fgg484 XILINX_SPEED_GRADE=2 PROJECT_XRAY_PATH="${TOOLS}/prjxray";
+          GOWIN_MAKE="${MAKE} GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\"";
+          ${GOWIN_MAKE} SYNTH_TARGET=gw2alv18 PNR_PACKAGE=pg256 GOWIN_SPEED_GRADE=C8/I7;
+
+          XILINX_MAKE="${MAKE} PROJECT_XRAY_PATH="${TOOLS}/prjxray"";
+          ${XILINX_MAKE} SYNTH_TARGET=xc7a35t PNR_PACKAGE=fgg484 XILINX_SPEED_GRADE=2;
+
           popd;
 
       - name: 'Bundle Artefacts'
