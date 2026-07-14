@@ -170,10 +170,11 @@ jobs:
         run: |
           set -e;
           pushd "${GITHUB_WORKSPACE}/build";
-          . "${PIPX_HOME}/venvs/apycula/bin/activate";
+          export PYTHON_VENV="${PIPX_HOME}/venvs/apycula/bin/activate";
           export PATH="${TOOLS_LOCAL}/bin:${TOOLS}/sv2v/bin:${TOOLS}/mdbook:${PATH}";
+          . "${PYTHON_VENV}";
 
-          MAKE="make all NEXTPNR_PREFIX=${TOOLS_LOCAL}/bin/";
+          MAKE="make all NEXTPNR_PREFIX=${TOOLS_LOCAL}/bin/ PYTHON_VENV=${PYTHON_VENV}";
           make --version;
 
           ICE40_MAKE="${MAKE}";

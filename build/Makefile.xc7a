@@ -43,7 +43,8 @@ endef
 export script_nextpnr_xilinx
 
 define script_xraybits_xilinx
-	python '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
+	[ -f '$(PYTHON_VENV)' ] && source '$(PYTHON_VENV)'; \
+	$(PYTHON) '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
 		--part "$${device}" \
 		--db-root "$(PROJECT_XRAY_DB_PATH)/artix7" \
 		'$(firstword $(filter %.$(OBJ_ASC_EXT),$^))' \

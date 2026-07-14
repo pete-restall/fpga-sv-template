@@ -95,6 +95,9 @@ SBY := sby
 SBY_ALL_FLAGS :=
 SBY_PROOF_FLAGS := $(SBY_ALL_FLAGS) -f
 
+PYTHON := python
+PYTHON_VENV :=
+
 NEXTPNR_PREFIX :=
 
 MDBOOK := mdbook
