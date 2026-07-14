@@ -27,7 +27,7 @@ jobs:
       TOOLS_LOCAL: "${{github.workspace}}/build/tools/local"
       PIPX_HOME: "${{github.workspace}}/build/tools/python"
       PIPX_BIN_DIR: "${{github.workspace}}/build/tools/python/bin"
-      PIP_ROOT: "${{github.workspace}}/build/tools/python"
+      PIP_PREFIX: "${{github.workspace}}/build/tools/python"
     steps:
       - uses: actions/checkout@v5
 
