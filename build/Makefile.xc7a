@@ -1,5 +1,5 @@
-PROJECT_XRAY_PATH ?= /usr/local/share/prjxray
-PROJECT_XRAY_DB_PATH ?= $(PROJECT_XRAY_PATH)-db
+PROJECT_XRAY_PATH := /usr/local/share/prjxray
+PROJECT_XRAY_DB_PATH := $(PROJECT_XRAY_PATH)-db
 
 XILINX_SPEED_GRADE := 2
 
