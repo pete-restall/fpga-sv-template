@@ -175,7 +175,7 @@ jobs:
           . "${PYTHON_VENV}";
 
           mkdir -p out;
-          tar -czv '${PIPX_HOME}/venvs/apycula' > out/apicula-venv.tar.gz;
+          tar -czv "${PIPX_HOME}/venvs/apycula" > out/apicula-venv.tar.gz;
 
           MAKE="make all NEXTPNR_PREFIX=${TOOLS_LOCAL}/bin/ PYTHON_VENV=${PYTHON_VENV}";
           make --version;
