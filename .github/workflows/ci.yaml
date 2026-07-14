@@ -171,8 +171,9 @@ jobs:
           set -e;
           pushd "${GITHUB_WORKSPACE}/build";
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
+          export PATH="${TOOLS_LOCAL}/bin:${TOOLS}/sv2v/bin/sv2v:${TOOLS}/mdbook/mdbook:${PATH}";
 
-          MAKE="make all SV2V=\"${TOOLS}/sv2v/bin/sv2v\" NEXTPNR_PREFIX="${TOOLS_LOCAL}/bin/" MDBOOK=\"${TOOLS}/mdbook/mdbook\" SBY=\"${TOOLS_LOCAL}/bin/sby\"";
+          MAKE="make all NEXTPNR_PREFIX=\"${TOOLS_LOCAL}/bin/\"";
           make --version;
 
           ICE40_MAKE="${MAKE}";
