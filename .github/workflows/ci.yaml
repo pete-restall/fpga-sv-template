@@ -116,7 +116,8 @@ jobs:
 
           pushd prjxray;
           CMAKE_POLICY_VERSION_MINIMUM=3.5 CXXFLAGS="-std=c++20" make build;
-          pipx runpip apycula install -r `readlink -f requirements.txt`;
+          deactivate;
+          pipx runpip apycula install -r requirements.txt;
           popd;
 
           popd;
