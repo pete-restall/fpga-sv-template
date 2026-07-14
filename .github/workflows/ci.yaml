@@ -173,17 +173,17 @@ jobs:
           . "${PIPX_HOME}/venvs/apycula/bin/activate";
           export PATH="${TOOLS_LOCAL}/bin:${TOOLS}/sv2v/bin:${TOOLS}/mdbook:${PATH}";
 
-          MAKE="make all NEXTPNR_PREFIX=\"${TOOLS_LOCAL}/bin/\"";
+          MAKE="make all 'NEXTPNR_PREFIX=${TOOLS_LOCAL}/bin/'";
           make --version;
 
           ICE40_MAKE="${MAKE}";
           ${ICE40_MAKE} SYNTH_TARGET=ice40up5k PNR_PACKAGE=sg48;
           ${ICE40_MAKE} SYNTH_TARGET=ice40hx1k PNR_PACKAGE=tq144;
 
-          GOWIN_MAKE="${MAKE} GOWIN_PACK=\"${PIPX_BIN_DIR}/gowin_pack\"";
+          GOWIN_MAKE="${MAKE} 'GOWIN_PACK=${PIPX_BIN_DIR}/gowin_pack'";
           ${GOWIN_MAKE} SYNTH_TARGET=gw2alv18 PNR_PACKAGE=pg256 GOWIN_SPEED_GRADE=C8/I7;
 
-          XILINX_MAKE="${MAKE} PROJECT_XRAY_PATH="${TOOLS}/prjxray"";
+          XILINX_MAKE="${MAKE} 'PROJECT_XRAY_PATH=${TOOLS}/prjxray'";
           ${XILINX_MAKE} SYNTH_TARGET=xc7a35t PNR_PACKAGE=fgg484 XILINX_SPEED_GRADE=2;
 
           popd;
