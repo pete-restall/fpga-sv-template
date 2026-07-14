@@ -43,7 +43,13 @@ endef
 export script_nextpnr_xilinx
 
 define script_xraybits_xilinx
-	[ -f '$(PYTHON_VENV)' ] && source '$(PYTHON_VENV)'; \
+	if [ -f '$(PYTHON_VENV)' ]; then \
+		echo 'Using Python venv $(PYTHON_VENV) for Project X-Ray.'; \
+		source '$(PYTHON_VENV)'; \
+	else \
+		echo 'No Python venv specified; this is not an error.'; \
+	fi; \
+	\
 	$(PYTHON) '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
 		--part "$${device}" \
 		--db-root "$(PROJECT_XRAY_DB_PATH)/artix7" \
