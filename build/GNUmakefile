@@ -99,6 +99,7 @@ PYTHON := python
 PYTHON_VENV :=
 
 NEXTPNR_PREFIX :=
+NEXTPNR_ALL_ARGS := --Werror
 
 MDBOOK := mdbook
 RSYNC := rsync

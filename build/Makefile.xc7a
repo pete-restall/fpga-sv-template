@@ -1,5 +1,5 @@
 PROJECT_XRAY_PATH := /usr/local/share/prjxray
-PROJECT_XRAY_DB_PATH := $(PROJECT_XRAY_PATH)-db
+PROJECT_XRAY_DB_PATH ?= $(PROJECT_XRAY_PATH)-db
 
 XILINX_SPEED_GRADE := 2
 
@@ -30,6 +30,7 @@ export script_create_synth_xilinx_ys
 
 define script_nextpnr_xilinx
 	'$(NEXTPNR_PREFIX)nextpnr-himbaechel' \
+		$(NEXTPNR_ALL_ARGS) \
 		$${nextpnr_args} \
 		--json '$<' \
 		--write '$(@:%.$(OBJ_ASC_EXT)=%.$(OBJ_JSON_EXT))' \
@@ -43,14 +44,7 @@ endef
 export script_nextpnr_xilinx
 
 define script_xraybits_xilinx
-	if [ -f '$(PYTHON_VENV)' ]; then \
-		echo 'Using Python venv $(PYTHON_VENV) for Project X-Ray.'; \
-		source '$(PYTHON_VENV)'; \
-	else \
-		echo 'No Python venv specified; this is not an error.'; \
-	fi; \
-	\
-	$(PYTHON) '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
+	python '$(PROJECT_XRAY_PATH)/utils/fasm2frames.py' \
 		--part "$${device}" \
 		--db-root "$(PROJECT_XRAY_DB_PATH)/artix7" \
 		'$(firstword $(filter %.$(OBJ_ASC_EXT),$^))' \
